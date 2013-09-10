@@ -16,26 +16,9 @@ type DiscoveryCache interface {
 	Get(id string) DiscoveredInfo
 }
 
-//type SimpleDiscoveredInfo struct {
-//opEndpoint string
-//opLocalId  string
-//claimedId  string
-//}
-
-//func (s *SimpleDiscoveredInfo) OpEndpoint() string {
-//return s.opEndpoint
-//}
-
-//func (s *SimpleDiscoveredInfo) OpLocalId() string {
-//return s.opLocalId
-//}
-
-//func (s *SimpleDiscoveredInfo) ClaimedId() string {
-//return s.claimedId
-//}
-
 type RedisDiscoveryCache struct {
-	Pool *redis.Pool
+	Pool      *redis.Pool
+	CacheName string
 }
 
 type RedisDiscoveredInfo struct {
@@ -58,11 +41,13 @@ func (s *RedisDiscoveredInfo) ClaimedId() string {
 
 func (s RedisDiscoveryCache) Put(id string, info DiscoveredInfo) {
 	log.Print("--------------PUT--------------")
+	s.Pool.Get().Do("SET", s.CacheName+id, info)
 }
 
 func (s RedisDiscoveryCache) Get(id string) DiscoveredInfo {
-	info, err := s.Pool.Get().Do("GET", "steam_discovery_cache:"+id)
+	info, err := s.Pool.Get().Do("GET", s.CacheName+id)
 	if info != nil {
+		log.Print("----------------------PRINT INFO----------------")
 		log.Print(info)
 		//return info
 	}
